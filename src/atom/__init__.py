@@ -39,7 +39,7 @@
       capture the information in the XML. Child nodes in an XML extension are
       turned into ExtensionElements as well.
 """
-
+from functools import wraps
 
 __author__ = 'api.jscudder (Jeffrey Scudder)'
 
@@ -86,16 +86,11 @@ def v1_deprecated(warning=None):
   # This closure is what is returned from the deprecated function.
   def mark_deprecated(f):
     # The deprecated_function wraps the actual call to f.
+    @wraps(f)
     def optional_warn_function(*args, **kwargs):
       if ENABLE_V1_WARNINGS:
         warnings.warn(warning, DeprecationWarning, stacklevel=2)
       return f(*args, **kwargs)
-    # Preserve the original name to avoid masking all decorated functions as
-    # 'deprecated_function'
-    try:
-      optional_warn_function.func_name = f.func_name
-    except TypeError:
-      pass # In Python2.3 we can't set the func_name
     return optional_warn_function
   return mark_deprecated
 
@@ -1469,15 +1464,9 @@ def deprecated(warning=None):
   # This closure is what is returned from the deprecated function.
   def mark_deprecated(f):
     # The deprecated_function wraps the actual call to f.
+    @wraps(f)
     def deprecated_function(*args, **kwargs):
       warnings.warn(warning, DeprecationWarning, stacklevel=2)
       return f(*args, **kwargs)
-    # Preserve the original name to avoid masking all decorated functions as
-    # 'deprecated_function'
-    try:
-      deprecated_function.func_name = f.func_name
-    except TypeError:
-      # Setting the func_name is not allowed in Python2.3.
-      pass
     return deprecated_function
   return mark_deprecated
